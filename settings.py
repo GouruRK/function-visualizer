@@ -1,0 +1,9 @@
+X_MIN = -5
+X_MAX = 5
+Y_MIN = -5
+Y_MAX = 5
+STEP = 0.001
+WIDTH = 400
+HEIGHT = 400
+AXES = True
+FUNCTIONS = []

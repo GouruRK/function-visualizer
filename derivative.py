@@ -1,0 +1,44 @@
+from typing import Union
+from function import Function
+
+
+class Derivative(Function):
+    """Object representing a mathematical function's derivative
+    with "x" the argument of the function.
+    This object support simple arithmetical functions, such as :
+     - "plus" representing by the symbol "+" ;
+     - "minus" representing	by the symbol "-" ;
+     - "times" representing	by the symbol "*" ;
+     - "divides" representing by the symbol "/" ;
+     - "power" representing	by the symbol "^" ;
+    and the parentheses.
+
+    This program is using the difference quotient formula to calculate
+    derivatives, which is f'(x) = lim (f(x+h)-f(x))/h as h approaches 0.
+    """
+
+    def __init__(self, expr: str) -> None:
+        """Initialisation of the Derivative object.
+
+        :param expr: the function expression
+        :type expr: str
+
+        Example of valid expression :
+         - "x+2"
+         - "(x-1)^2"
+         - "((-x+2)^2)/(x*2)"
+        """
+        super().__init__(expr)
+
+    def f(self, x: Union[float, int]) -> float:
+        """Calculate the value of the function for an ``x``
+
+        :param x: the value for the function to compute for
+        :type x: int | float
+        :return: the result
+        :rtype: int | float
+        """
+        h = 1e-10
+        f = self.compute(self.replace_x(self.expr_list, x))
+        f2 = self.compute(self.replace_x(self.expr_list, x + h))
+        return (f2 - f) / h
