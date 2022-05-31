@@ -1,4 +1,3 @@
-
 <h1 align="center">
   <br>
   function-visualiser
@@ -14,7 +13,9 @@
   <a href="#license">License</a>
 </p>
 
-![screenshot](https://github.com/GouruRK/function-visualizer/blob/main/screenshots/Capture.PNG)
+<p align="center">
+ <img src="https://github.com/GouruRK/function-visualizer/blob/main/screenshots/Capture.PNG">
+</p>
 
 ## Key Features
 
