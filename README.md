@@ -14,7 +14,7 @@
   <a href="#license">License</a>
 </p>
 
-![screenshot](screenshots/Capture.png)
+![screenshot](https://github.com/GouruRK/function-visualizer/blob/main/screenshots/Capture.PNG)
 
 ## Key Features
 
