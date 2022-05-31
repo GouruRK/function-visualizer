@@ -83,6 +83,8 @@ $ python3 graphic.py '2*x' 'd2*x'
 ## Next step
 
 This is just the begining of the project, and more things will be add, such as pre-define functions (cos, sin, exp, sqrt, log, etc). A nice way to do that, is by implementing the [shutting yard](https://en.wikipedia.org/wiki/Shunting_yard_algorithm) algorithm. This implementation will also help to define if a expression is valid or not.
+
+An other possible upgrade is to add graduation on the axes, and an option to travel on the graph.
 ## License
 
 MIT
