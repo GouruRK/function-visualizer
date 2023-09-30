@@ -1,16 +1,25 @@
-from typing import Union
+from typing import Any, Union
+
+Expression = list[Union[int, float]]
+
+OPERATORS = {
+    "*": lambda a, b: a * b,
+    "/": lambda a, b: a / b,
+    "+": lambda a, b: a + b,
+    "-": lambda a, b: a - b,
+    "^": lambda a, b: a**b,
+}
 
 
 class Function:
-    """Object representing a mathematical function, with "x"
-    the argument of the function.
+    """Object representing a math function, with "x" as unknown var.
     This object support simple arithmetical functions, such as :
-     - "plus" representing by the symbol "+" ;
-     - "minus" representing	by the symbol "-" ;
-     - "times" representing	by the symbol "*" ;
-     - "divides" representing by the symbol "/" ;
-     - "power" representing	by the symbol "^" ;
-    and the parentheses.
+     - "plus" represented by "+" ;
+     - "minus" represented	by "-" ;
+     - "times" represented	by "*" ;
+     - "divides" represented by "/" ;
+     - "power" represented	by "^" ;
+    and the parentheses for priorities.
     """
 
     def __init__(self, expr: str) -> None:
@@ -24,50 +33,47 @@ class Function:
          - "(x-1)^2"
          - "((-x+2)^2)/(x*2)"
         """
-        self.expr = expr
-        self.expr_list = self.tokenize()
+        self.expr, length = self.tokenize(expr)
+        if (not length) or (not len(self.expr)):
+            raise ValueError("Expression cannot be empty")
 
-    def tokenize(self, expr: str = "", i: int = 0) -> list[Union[float, str]]:
+    def tokenize(self, expr: str, i: int = 0) -> tuple[Expression, int]:
         """Transform the valid string's expression into a list of tokens.
         This method does not support invalid expression.
-        All the numbers will be parsed as flaot (which means that "2"
+        All the numbers will be parsed as float (which means that "2"
         will be evaluated as 2.0).
         Relatives number (such as "-3") will be evaluated as "-1.0*3.0"
         Float numbers must be written with a "." (not a comma).
 
-        :param expr: expression to tokenize, defaults to "" means that
-            "self.expr" will be the string to tokenize
+        :param expr: expression to tokenize
         :type expr: str, optional
         :param i: index of ``expr`` which indicates the starting point of
         the processus of tokenization, defaults to 0
         :type i: int, optional
-        :return: The list with the tokens
-        :rtype: lst
+        :return: list of tokens and it's total length
+        :rtype: tuple[list, int]
 
         >>> Function.tokenize("x+2.3")
-        ['x', '+', 2.3]
+        (['x', '+', 2.3], 5)
         >>> Function.tokenize("(x-1)^2")
-        [['x', '-', 1.0], '^', 2.0]
+        ([['x', '-', 1.0], '^', 2.0], 7)
         >>> Function.tokenize("((-x+2)^2)/(x*2)")
-        [[[-1.0, '*', 'x', '+', 2.0], '^', 2.0], '/', ['x', '*', 2.0]]
+        ([[[-1.0, '*', 'x', '+', 2.0], '^', 2.0], '/', ['x', '*', 2.0]], 16)
         """
-        if expr == "":
-            expr = self.expr
         lst = []
         while i < len(expr):
             if expr[i] == "(":
-                res = self.tokenize(expr, i + 1)
+                res, i = self.tokenize(expr, i + 1)
                 lst.append(res)
-                result, depth = self.get_full_lenght(res)
-                i += result + 1 + depth
             elif expr[i] == ")":
-                return lst
+                return lst, i + 1
             elif expr[i] == "-":
                 if i == 0 or expr[i - 1] == "(":
                     lst.append(-1.0)
                     lst.append("*")
                 else:
                     lst.append("-")
+                i += 1
             elif expr[i] == ".":
                 i += 1
                 depth = 1
@@ -76,44 +82,19 @@ class Function:
                     lst[-1] += digit * 10 ** (-depth)
                     i += 1
                     depth += 1
-                i -= 1
             elif expr[i].isdigit():
                 lst.append(0)
                 while i < len(expr) and expr[i].isdigit():
                     lst[-1] = lst[-1] * 10 + float(expr[i])
                     i += 1
-                i -= 1
+            elif expr[i] == " ":
+                i += 1
             else:
                 lst.append(expr[i])
-            i += 1
-        return lst
+                i += 1
+        return lst, i
 
-    def get_full_lenght(self, lst: list, depth: int = 0) -> tuple[int, int]:
-        """Return the full length of a current expression, depending on the
-        number of terms in ``lst``, includings list of list etc ; and the
-        depth, the number of list of lists.
-
-        :param lst: the list to be evaluated
-        :type lst: list
-        :param depth: the current depth, defaults to 0
-        :type depth: int, optional
-        :return: the length and the depth
-        :rtype: tuple
-
-        >>> Function.get_full_lenght(['x', '+', 2.3])
-        (3, 0)
-        >>> Function.get_full_lenght([['x', '-', 1.0], '^', 2.0])
-        (5, 1)
-        """
-        lenght = 0
-        for i in range(len(lst)):
-            if isinstance(lst[i], list):
-                result, depth = self.get_full_lenght(lst[i], depth + 1)
-                lenght += result
-            lenght += 1
-        return lenght, depth
-
-    def calculate(self, expr: list, indice: int) -> list[Union[float, str]]:
+    def calculate(self, expr: Expression, indice: int) -> Expression:
         """Take an operation inside an expression and return
         the result of it.
         The result of this fonction modify the ``expr`` argument.
@@ -130,25 +111,17 @@ class Function:
         >>> Function.calculate([2.0, "+", 3.0, '^', 2.0], 3)
         [2.0, '+', 9.0]
         """
-        operations = {
-            "*": lambda a, b: a * b,
-            "/": lambda a, b: a / b,
-            "+": lambda a, b: a + b,
-            "-": lambda a, b: a - b,
-            "^": lambda a, b: a**b,
-        }
         n_0 = expr[indice - 1]
         n_1 = expr[indice + 1]
         operator = expr[indice]
-        res = operations[operator](n_0, n_1)
-        expr[indice] = res
+        expr[indice] = OPERATORS[operator](n_0, n_1)
         expr.pop(indice + 1)
         expr.pop(indice - 1)
         return expr
 
     def iterate(self, expr: list, operators: set) -> list[Union[float, str]]:
         """Loop on the list to see if the expression in ``lst``
-        contains an operator in ``ope``, an calculate the result
+        contains an operator in ``ope``, and calculate the result
         of that operation.
         The result of this fonction modify the ``expr`` argument.
 
@@ -166,19 +139,18 @@ class Function:
                 i += 1
         return expr
 
-    def proceed(self, expr: list) -> float:
+    def execute(self, expr: Expression) -> float:
         """This function will calculate the result of an expression
-        whithout parentheses following the rules of maths
-        operators order.
+        whithout parentheses according to operators priorities.
 
         :param expr: the expression
         :type expr: list
         :return: the result
-        :rtype: int | float
+        :rtype: float
 
-        >>> Function.proceed([2.0, "+", 3.0])
+        >>> Function.execute([2.0, "+", 3.0])
         5.0
-        >>> Function.proceed([2.0, "+", 3.0, '^', 2.0])
+        >>> Function.execute([2.0, "+", 3.0, '^', 2.0])
         11.0
         """
         self.iterate(expr, {"^"})
@@ -186,15 +158,15 @@ class Function:
         self.iterate(expr, {"+", "-"})
         return expr[0]
 
-    def compute(self, expr: list) -> float:
+    def compute(self, expr: Expression) -> float:
         """This function will calculate the result of an expression
-        with parentheses, by calculate at first the result of all
-        parentheses, following the rule of operators order.
+        with parentheses, by calculating at first the result of all
+        parentheses, following the rule of operators priority.
 
         :param expr: the expression
         :type expr: list
         :return: the result
-        :rtype: int | float
+        :rtype: float
 
         >>> Function.compute([[5.0, '-', 1.0], '^', 2.0])
         16.0
@@ -211,9 +183,9 @@ class Function:
                     is_parentheses = True
                     res = self.compute(expr[j])
                     expr[j] = res
-        return self.proceed(expr)
+        return self.execute(expr)
 
-    def replace_x(self, expr: list, x: Union[int, float]) -> list[Union[float, str]]:
+    def replace_x(self, expr: Expression, x: Union[int, float]) -> Expression:
         """Replace the "x" variable of the function by the
         ``x`` argument
 
@@ -240,7 +212,7 @@ class Function:
                 lst.append(expr[i])
         return lst
 
-    def f(self, x: Union[int, float]) -> float:
+    def __call__(self, x: Union[int, float]) -> float:
         """Calculate the value of the function for an ``x``
 
         :param x: the value for the function to compute for
@@ -248,7 +220,7 @@ class Function:
         :return: the result
         :rtype: int | float
         """
-        fun = self.replace_x(self.expr_list, x)
+        fun = self.replace_x(self.expr, x)
         return self.compute(fun)
 
 

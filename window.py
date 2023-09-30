@@ -22,8 +22,8 @@ class Window:
         self.canvas.focus_set()
 
     def line(
-        self, x1: int, y1: int, x2: int, y2: int, fill: str = "black",
-        width: int = 1) -> None:
+        self, x1: int, y1: int, x2: int, y2: int, fill: str = "black", width: int = 1
+    ) -> None:
         """Function  to draw line on the window, from (x1, y1) to (x2, y2)
 
         :param x1: the absciss of the first point

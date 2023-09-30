@@ -76,7 +76,7 @@ class Graph:
             x = self.x_min
             while x < self.x_max:
                 try:
-                    y = f.f(x)
+                    y = f(x)
                     if isinstance(y, complex):
                         raise TypeError
                     a, b = self.coordinate_to_screen((x, y))
